@@ -2,9 +2,11 @@ package com.example.myapplication
 
 import android.app.*
 import android.content.Intent
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.telephony.ServiceState
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -15,11 +17,27 @@ class MyService : Service() {
         val START_SERVICE = "start"
         val STOP_SERVICE = "stop"
         val FOREGROUND_SERVICE = "foreground"
+        const val TAG = "MyService"
     }
 
+    var isForeGroundService = false
+
     val CHANNEL_ID: String = "channelId"
+
+    inner class LocalBinder : Binder() {
+        fun getService(): MyService = this@MyService
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        isForeGroundService = false
+    }
+
+    private val binder = LocalBinder()
+
     override fun onBind(intent: Intent): IBinder {
-        TODO("Return the communication channel to the service.")
+        Log.d(TAG, "onBind")
+        return binder
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -34,8 +52,6 @@ class MyService : Service() {
                 showToast(intentAction ?: "Empty action intent")
             }
         }
-
-
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -43,12 +59,12 @@ class MyService : Service() {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
-    private fun doForegroundThings() {
+    fun doForegroundThings() {
         showToast("Going foreground")
         createNotificationChannel()
         val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
-
+        isForeGroundService = true
         var builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_ice_foreground)
             .setContentTitle("My notification title")
@@ -88,8 +104,8 @@ class MyService : Service() {
     private fun stopService() {
         showToast("Service stopping")
         try {
-
             stopForeground(true)
+            isForeGroundService = false
             stopSelf()
         } catch (e: Exception) {
             e.printStackTrace()
