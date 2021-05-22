@@ -1,5 +1,5 @@
-# Foreground Service start optimisation
-A sample to show optimisations in starting a foreground service
+# Foreground Service start optimization
+A sample to show an optimal method of starting a foreground service
 <br/>
 A common crash related to usage of foreground services is : 
 Context.startForegroundService() did not then call Service.startForeground()
